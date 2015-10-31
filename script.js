@@ -1,94 +1,127 @@
-var square = document.getElementsByClassName("square");
-var num_ship = 10;
-var fields = 25;
-//localStorage.setItem('record', '');
-//browser remember your record
-if (localStorage.getItem('record') == undefined) {
-    localStorage.setItem('record', '25');
-}
-var record = parseInt(localStorage['record']);
-//var record = fields;
-
-$(document).ready(function() {
-
-    //add empty fields to our game
-    addEmptyFields(fields);
-
-    startNewGame();
-
-    $('.square').click(function() {
-        $(this).addClass('red');
-
-        //change number of destroyed ships after clicking square
-        destroyedShipsNum();
-
-        //when game is finished display message
-        displayTotalMessage();
-    });
-
-    $('button').click(function() {
-        $('.message').fadeOut(600);
-        startNewGame();
-    });
-
-    //add empty fields to our game
-    function addEmptyFields(fields) {
-      var divSquare = '<div class="square"></div>';
-      for (var i = 0; i < fields; i++) {
-          $('button').before(divSquare);
-      };
-    }
-
-    //actions when button is clicked
-    //to start new game
-    function startNewGame() {
-        $('button').text("New Game!");
-        $('.red, .green').removeClass('red green');
-        var rand_sq = random(0, square.length, num_ship);
-        for (var l = 0; l < rand_sq.length; l++) {
-            var k = rand_sq[l];
-            $('.square:eq(' + k + ')').addClass('green');
+var model = {
+    numShips: 25,
+    numLiveShips: 10,
+    numDestroyedShips: 0,
+    numMiss: 0,
+    notSunked: random(0, 25, 10),
+    ship: {},
+    addShips: function (n) {
+        for (var i = 0; i < n; i++) {
+            this.ship[i] = false;
         }
-        //show number of destroyed ships
-        destroyedShipsNum();
-    }
-
-    //show number of destroyed ships
-    function destroyedShipsNum() {
-        var destroyedShips = $('.green.red').length;
-        var messageDestroyedShips = "Destroyed ships: " + destroyedShips + "/" + num_ship;
-        $('.count').text(messageDestroyedShips);
-        
-        var recordMessage = "Your best record: " + localStorage['record'];
-        $('.record').text(recordMessage);
-    }
-
-    //when game is finished display message
-    function displayTotalMessage() {
-      var num = $('div.red').length;
-      if ($('.green.red').length >= num_ship) {
-        $('.message').fadeIn(600);
-        $('.mes-inner').fadeIn(600);
-
-        //refresh record
-        if (record > num) {
-            localStorage.setItem('record', num);
+        for (var j = 0; j < this.numLiveShips; j++) {
+            this.ship[this.notSunked[j]] = true;
         }
-
-        if (num > num_ship) {
-            $('.mes-inner').html("You win!!! It takes " + num + " attempts!");
-        } else if (num === num_ship) {
-            $('.mes-inner').html("You win!!! You are very lucky!!!");
+    },
+    fire: function () {
+        var indexOfChosenShip = $(this).index();
+        if (model.ship[indexOfChosenShip] === true) {
+            //if fire the ship
+            $(this).addClass('green');
+            model.numDestroyedShips = $('.green').length;
+        } else {
+            $(this).addClass('red');
+            model.numMiss = $('.red').length;
         }
-        //You lose if there is only one shot and one ship
-        if ((num - 1) === (fields -1)) {
-            $('.mes-inner').html("You lose(((");
+        view.updateStat();
+        model.isLastShot();
+    },
+    isLastShot: function () {
+        if (model.numDestroyedShips === model.numLiveShips) {
+            view.popupGoodResult();
+            model.setRecord();
         }
-      }
+        if (model.numMiss === 15) {
+            view.popupBadResult();
+        }
+    },
+    record: parseInt(localStorage.getItem('record')),
+    setRecord: function () {
+        if (localStorage.getItem('record') == undefined) {
+            localStorage.setItem('record', '25');
+        }
+        if (model.record > (model.numMiss + model.numDestroyedShips)) {
+            localStorage.setItem('record', (model.numMiss + model.numDestroyedShips));
+        }
+        model.record = parseInt(localStorage.getItem('record'));
+        return model.record;
     }
-})
+};
+var view = {
+    //delete ships & restart the game
+    cleanWindow: function () {
+        model.numMiss = 0;
+        model.numDestroyedShips = 0;
+        model.notSunked = random(0, 25, 10);
+        $('.ship, .finish-window, .stat, .record').remove();
+        $('button').removeClass('good-btn').removeClass('bad-btn');
+    },
+    //add ships on page
+    addShips: function (n) {
+        for (var i = n; i > 0; i--) {
+            controller.createDiv('ship', '.main_field');
+        }
+    },
+    //add statistics & record block on page
+    addStats: function () {
+        controller.createDiv('stat', 'body');
+        controller.createDiv('record', 'body');
+        view.updateStat();
+    },
+    updateStat: function () {
+        $('.stat').html("Destroyed ships: " + model.numDestroyedShips);
+    },
+    updateRecord: function () {
+        $('.record').html("Your best result: " + model.record);
+    },
+    //make popup
+    popupResult: function () {
+        controller.createDiv('finish-window', 'body');
+        $('.finish-window').fadeIn(400);
+    },
+    popupGoodResult: function () {
+        view.popupResult();
+        controller.createDiv('good-news', '.finish-window');
+        $('button').addClass("good-btn");
+        $('.good-news').html("You win!!! <br> It takes " + (model.numDestroyedShips + model.numMiss) + " attempts");
+    },
+    popupBadResult: function () {
+        view.popupResult();
+        controller.createDiv('bad-news', '.finish-window');
+        $('button').addClass("bad-btn");
+        $('.bad-news').html('You lose(');
+    }
+};
+var controller = {
+    //start the game
+    startGame: function () {
+        view.cleanWindow();
+        view.addShips(model.numShips);
+        view.addStats();
+        view.updateRecord();
+        model.addShips(model.numShips);
+        controller.shoot();
+    },
+    shoot: function () {
+        $('.ship').click(model.fire);
+    },
+    //help function to crate div quickly
+    createDiv: function (className, whereToAdd) {
+        var el = document.createElement('div');
+        el.className = className;
+        $(whereToAdd).append(el);
+    }
+};
+$(document).ready(function () {
+    controller.startGame();
+    //new game button
+    $('.new-game').click(function () {
+        controller.startGame();
+    })
+});
 
 //generation of n different random numbers
+//this work only for min = 0!!!!!!!!
 function random(min, max, n) {
     if (max - min < n) {
         return false;
@@ -100,7 +133,7 @@ function random(min, max, n) {
     }
     for (var i = 0; i < n; i++) {
         var random_number = Math.floor(Math.random() * arr.length + min);
-        result[i] = " " + arr[random_number];
+        result[i] = arr[random_number];
         arr.splice(random_number, 1);
     }
     return result;
