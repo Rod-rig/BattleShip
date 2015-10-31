@@ -16,7 +16,10 @@ div {
   display: inline-block;
   margin-bottom: -6px;
   margin-left: -6px;
-  transition: all ease .01s;
+  transition: all ease .1s;
+}
+.square {
+  cursor: url(http://png-1.findicons.com/files/icons/2579/iphone_icons/40/aim.png), pointer;
 }
 
 .square:hover {
@@ -61,7 +64,6 @@ button:hover {
   font-size: 30px;
   text-align: center;
   position: fixed;
-  z-index: 1000;
   width: 600px;
   height: 300px;
   line-height: 300px;
@@ -89,15 +91,23 @@ button:hover {
   display: none;
 }
 
-.count-message {
+.stat-message {
   background-color: green;
   color: #fff;
   box-shadow: 2px 2px 20px black;
-  padding: 10px;
   width: 110px;
-  height: 50px;
   position: absolute;
   top: 20px;
   left: 20px;
   z-index: 1001;
+}
+.stat-message div {
+  padding: 10px;
+  border-bottom: 1px solid white;
+}
+.stat-message div:last-child {
+  border-bottom: none;
+}
+form {
+  margin-top: 150px;
 }

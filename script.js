@@ -1,17 +1,20 @@
 var square = document.getElementsByClassName("square");
 var num_ship = 10;
 var fields = 25;
+//localStorage.setItem('record', '');
+//browser remember your record
+if (localStorage.getItem('record') == undefined) {
+    localStorage.setItem('record', '25');
+}
+var record = parseInt(localStorage['record']);
+//var record = fields;
 
 $(document).ready(function() {
+
     //add empty fields to our game
     addEmptyFields(fields);
 
     startNewGame();
-    //when click on message this close
-    // $('.message').click(function() {
-    //     $(this).fadeOut(600);
-    //     startNewGame();
-    // })
 
     $('.square').click(function() {
         $(this).addClass('red');
@@ -54,7 +57,10 @@ $(document).ready(function() {
     function destroyedShipsNum() {
         var destroyedShips = $('.green.red').length;
         var messageDestroyedShips = "Destroyed ships: " + destroyedShips + "/" + num_ship;
-        $('.count-message').text(messageDestroyedShips);
+        $('.count').text(messageDestroyedShips);
+        
+        var recordMessage = "Your best record: " + localStorage['record'];
+        $('.record').text(recordMessage);
     }
 
     //when game is finished display message
@@ -64,10 +70,19 @@ $(document).ready(function() {
         $('.message').fadeIn(600);
         $('.mes-inner').fadeIn(600);
 
+        //refresh record
+        if (record > num) {
+            localStorage.setItem('record', num);
+        }
+
         if (num > num_ship) {
-            $('.mes-inner').html("You win!!! It takes " + num + " attepts!");
-        } else {
+            $('.mes-inner').html("You win!!! It takes " + num + " attempts!");
+        } else if (num === num_ship) {
             $('.mes-inner').html("You win!!! You are very lucky!!!");
+        }
+        //You lose if there is only one shot and one ship
+        if ((num - 1) === (fields -1)) {
+            $('.mes-inner').html("You lose(((");
         }
       }
     }
