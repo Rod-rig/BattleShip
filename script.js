@@ -1,140 +1,103 @@
-var model = {
-    numShips: 25,
-    numLiveShips: 10,
-    numDestroyedShips: 0,
-    numMiss: 0,
-    notSunked: random(0, 25, 10),
-    ship: {},
-    addShips: function (n) {
-        for (var i = 0; i < n; i++) {
-            this.ship[i] = false;
-        }
-        for (var j = 0; j < this.numLiveShips; j++) {
-            this.ship[this.notSunked[j]] = true;
-        }
-    },
-    fire: function () {
-        var indexOfChosenShip = $(this).index();
-        if (model.ship[indexOfChosenShip] === true) {
-            //if fire the ship
-            $(this).addClass('green');
-            model.numDestroyedShips = $('.green').length;
-        } else {
-            $(this).addClass('red');
-            model.numMiss = $('.red').length;
-        }
-        view.updateStat();
-        model.isLastShot();
-    },
-    isLastShot: function () {
-        if (model.numDestroyedShips === model.numLiveShips) {
-            view.popupGoodResult();
-            model.setRecord();
-        }
-        if (model.numMiss === 15) {
-            view.popupBadResult();
-        }
-    },
-    record: parseInt(localStorage.getItem('record')),
-    setRecord: function () {
-        if (localStorage.getItem('record') == undefined) {
-            localStorage.setItem('record', '25');
-        }
-        if (model.record > (model.numMiss + model.numDestroyedShips)) {
-            localStorage.setItem('record', (model.numMiss + model.numDestroyedShips));
-        }
-        model.record = parseInt(localStorage.getItem('record'));
-        return model.record;
-    }
-};
-var view = {
-    //delete ships & restart the game
-    cleanWindow: function () {
-        model.numMiss = 0;
-        model.numDestroyedShips = 0;
-        model.notSunked = random(0, 25, 10);
-        $('.ship, .finish-window, .stat, .record').remove();
-        $('button').removeClass('good-btn').removeClass('bad-btn');
-    },
-    //add ships on page
-    addShips: function (n) {
-        for (var i = n; i > 0; i--) {
-            controller.createDiv('ship', '.main_field');
-        }
-    },
-    //add statistics & record block on page
-    addStats: function () {
-        controller.createDiv('stat', 'body');
-        controller.createDiv('record', 'body');
-        view.updateStat();
-    },
-    updateStat: function () {
-        $('.stat').html("Destroyed ships: " + model.numDestroyedShips);
-    },
-    updateRecord: function () {
-        $('.record').html("Your best result: " + model.record);
-    },
-    //make popup
-    popupResult: function () {
-        controller.createDiv('finish-window', 'body');
-        $('.finish-window').fadeIn(400);
-    },
-    popupGoodResult: function () {
-        view.popupResult();
-        controller.createDiv('good-news', '.finish-window');
-        $('button').addClass("good-btn");
-        $('.good-news').html("You win!!! <br> It takes " + (model.numDestroyedShips + model.numMiss) + " attempts");
-    },
-    popupBadResult: function () {
-        view.popupResult();
-        controller.createDiv('bad-news', '.finish-window');
-        $('button').addClass("bad-btn");
-        $('.bad-news').html('You lose(');
-    }
-};
-var controller = {
-    //start the game
-    startGame: function () {
-        view.cleanWindow();
-        view.addShips(model.numShips);
-        view.addStats();
-        view.updateRecord();
-        model.addShips(model.numShips);
-        controller.shoot();
-    },
-    shoot: function () {
-        $('.ship').click(model.fire);
-    },
-    //help function to crate div quickly
-    createDiv: function (className, whereToAdd) {
-        var el = document.createElement('div');
-        el.className = className;
-        $(whereToAdd).append(el);
-    }
-};
-$(document).ready(function () {
-    controller.startGame();
-    //new game button
-    $('.new-game').click(function () {
-        controller.startGame();
-    })
-});
+//variables
+var sizeArea = 100;
+var maxCoord = Math.sqrt(sizeArea);
+var body = document.getElementsByTagName('body')[0];
 
-//generation of n different random numbers
-//this work only for min = 0!!!!!!!!
-function random(min, max, n) {
-    if (max - min < n) {
-        return false;
+//ship properties
+function Ship(size) {
+    this.size = size;
+    this.status = 'live';
+
+    var direction = ['horizontal', 'vertical'];
+    this.dir = randomChoiceInArr(direction);
+
+    this.shipCoords = {
+        x: randomNumber(maxCoord),
+        y: randomNumber(maxCoord)
+    };
+
+    this.shoot = function() {
+        if (this.size > 1) {
+            this.size--;
+        } else {
+            this.size = 0;
+            this.status = 'dead';
+        }
+        return this;
     }
-    var result = [];
-    var arr = [];
-    for (var j = min; j < max; j++) {
-        arr[j] = j;
-    }
-    for (var i = 0; i < n; i++) {
-        var random_number = Math.floor(Math.random() * arr.length + min);
-        result[i] = arr[random_number];
-        arr.splice(random_number, 1);
-    }
-    return result;
 }
+
+var ship1 = new Ship(4);
+var ship2 = new Ship(3);
+var ship3 = new Ship(2);
+var ship4 = new Ship(1);
+
+
+//ship1.shoot();
+console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
+             ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
+
+//generate random choice in array
+function randomChoiceInArr(arr) {
+    var randomNumber = Math.floor(Math.random() * arr.length);
+    return arr[randomNumber];
+}
+//generate random number from 1 to n
+function randomNumber(n) {
+    return Math.floor(Math.random() * n) + 1;
+}
+
+//build view
+var view = {
+    generateCells: function (n) {
+        for (var i = n; i >= 1; i--) {
+            var div = document.createElement('div');
+            div.className = 'cell';
+            body.appendChild(div);
+        }
+    },
+    viewShip: function (obj, arr) {
+        var x = obj.shipCoords.x;
+        var y = obj.shipCoords.y;
+        var shipHorizHead = x - 1 + (y - 1) * maxCoord;
+        if (obj.dir === 'horizontal') {
+            for (var i = 0; i < obj.size; i++) {
+                arr[shipHorizHead + i].style.background = 'green';
+            }
+        } else {
+            for (var j = 0; j < obj.size; j++) {
+                arr[x - 1 + (y - 1 + j) * maxCoord].style.background = 'green';
+            }
+        }
+    }
+};
+view.generateCells(sizeArea);
+//styles
+var styles = {
+    width: '50px',
+    height: '50px',
+    display: 'inline-block',
+    background: 'lightgray',
+    marginRight: '4px'
+};
+//Object.prototype.css = function(obj) {
+//    for (var prop in obj) {
+//        if (obj.hasOwnProperty(prop)) {
+//            this.style.setProperty(prop, obj.prop, null);
+//        }
+//    }
+//};
+var cell = document.querySelectorAll('.cell');
+for (var i = 0; i < cell.length; i++) {
+    cell[i].style.width = '50px';
+    cell[i].style.height = '50px';
+    cell[i].style.display = 'inline-block';
+    cell[i].style.background = 'lightgray';
+    cell[i].style.marginRight = '4px';
+    //cell[0].css(styles);
+}
+body.style.width = maxCoord * 50 + maxCoord * 4 + 'px';
+view.viewShip(ship1, cell);
+view.viewShip(ship2, cell);
+view.viewShip(ship3, cell);
+view.viewShip(ship4, cell);
