@@ -28,8 +28,12 @@ function Ship(size) {
 }
 
 var ship1 = new Ship(4);
+var ship2 = new Ship(3);
+var ship3 = new Ship(2);
+var ship4 = new Ship(1);
 
-ship1.shoot();
+
+//ship1.shoot();
 console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
              ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
 
@@ -43,13 +47,9 @@ function randomNumber(n) {
     return Math.floor(Math.random() * n) + 1;
 }
 
-
-
-
-
 //build view
 var view = {
-    generate: function (n) {
+    generateCells: function (n) {
         for (var i = n; i >= 1; i--) {
             var div = document.createElement('div');
             div.className = 'cell';
@@ -59,11 +59,34 @@ var view = {
     viewShip: function (obj, arr) {
         var x = obj.shipCoords.x;
         var y = obj.shipCoords.y;
-        arr[x - 1 + (y - 1) * maxCoord].style.background = 'green';
+        var shipHorizHead = x - 1 + (y - 1) * maxCoord;
+        if (obj.dir === 'horizontal') {
+            for (var i = 0; i < obj.size; i++) {
+                arr[shipHorizHead + i].style.background = 'green';
+            }
+        } else {
+            for (var j = 0; j < obj.size; j++) {
+                arr[x - 1 + (y - 1 + j) * maxCoord].style.background = 'green';
+            }
+        }
     }
 };
-view.generate(sizeArea);
+view.generateCells(sizeArea);
 //styles
+var styles = {
+    width: '50px',
+    height: '50px',
+    display: 'inline-block',
+    background: 'lightgray',
+    marginRight: '4px'
+};
+//Object.prototype.css = function(obj) {
+//    for (var prop in obj) {
+//        if (obj.hasOwnProperty(prop)) {
+//            this.style.setProperty(prop, obj.prop, null);
+//        }
+//    }
+//};
 var cell = document.querySelectorAll('.cell');
 for (var i = 0; i < cell.length; i++) {
     cell[i].style.width = '50px';
@@ -71,6 +94,10 @@ for (var i = 0; i < cell.length; i++) {
     cell[i].style.display = 'inline-block';
     cell[i].style.background = 'lightgray';
     cell[i].style.marginRight = '4px';
+    //cell[0].css(styles);
 }
 body.style.width = maxCoord * 50 + maxCoord * 4 + 'px';
 view.viewShip(ship1, cell);
+view.viewShip(ship2, cell);
+view.viewShip(ship3, cell);
+view.viewShip(ship4, cell);
