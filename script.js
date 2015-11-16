@@ -16,15 +16,15 @@ function Ship(size) {
         y: randomNumber(maxCoord)
     };
 
-    this.shoot = function() {
-        if (this.size > 1) {
-            this.size--;
-        } else {
-            this.size = 0;
-            this.status = 'dead';
-        }
-        return this;
-    }
+    //this.shoot = function() {
+    //    if (this.size > 1) {
+    //        this.size--;
+    //    } else {
+    //        this.size = 0;
+    //        this.status = 'dead';
+    //    }
+    //    return this;
+    //}
 }
 
 var ship1 = new Ship(4);
@@ -34,8 +34,8 @@ var ship4 = new Ship(1);
 
 
 //ship1.shoot();
-console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
-             ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
+//console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
+//             ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
 
 //generate random choice in array
 function randomChoiceInArr(arr) {
@@ -78,23 +78,19 @@ var styles = {
     height: '50px',
     display: 'inline-block',
     background: 'lightgray',
-    marginRight: '4px'
+    margin: '0 4px 0 0'
 };
-//Object.prototype.css = function(obj) {
-//    for (var prop in obj) {
-//        if (obj.hasOwnProperty(prop)) {
-//            this.style.setProperty(prop, obj.prop, null);
-//        }
-//    }
-//};
+Object.prototype.css = function(obj) {
+    for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            this.style.setProperty(prop, obj[prop], null);
+        }
+    }
+};
 var cell = document.querySelectorAll('.cell');
+
 for (var i = 0; i < cell.length; i++) {
-    cell[i].style.width = '50px';
-    cell[i].style.height = '50px';
-    cell[i].style.display = 'inline-block';
-    cell[i].style.background = 'lightgray';
-    cell[i].style.marginRight = '4px';
-    //cell[0].css(styles);
+    cell[i].css(styles);
 }
 body.style.width = maxCoord * 50 + maxCoord * 4 + 'px';
 view.viewShip(ship1, cell);
