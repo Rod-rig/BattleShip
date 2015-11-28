@@ -1,12 +1,30 @@
 //variables
-var sizeArea = 25;
+var sizeArea = 16;
+var numberOfShips = 10;
 var maxCoord = Math.sqrt(sizeArea);
 var body = document.getElementsByTagName('body')[0];
 
-var arrX = [], arrY = [], arrayCoords = [], xCoordsShip, yCoordsShip;
-for (var k = 1; k <= maxCoord; k++) {
-    arrX.push(k);
-    arrY.push(k);
+var coordsArray = [];
+for (var k = 1; k <= sizeArea; k++) {
+    coordsArray.push(k);
+}
+
+//generate random choice in array
+function randomChoiceInArr(arr) {
+    var random = Math.floor(Math.random() * sizeArea);
+    return arr[random];
+}
+//convert number into coordinates
+function convertNumber(num) {
+    var x = num % maxCoord;
+    if (x == 0) {
+        x = maxCoord;
+    }
+    var y = Math.ceil(num / maxCoord);
+    //coordsArray[num - 1] = 1;
+    //coordsArray[num - 1] = undefined;
+    //console.log(num);
+    return [x, y];
 }
 
 //ship properties
@@ -17,11 +35,10 @@ function Ship(size) {
     var direction = ['horizontal', 'vertical'];
     this.dir = randomChoiceInArr(direction);
 
+    this.resCoords = convertNumber(randomChoiceInArr(coordsArray));
     this.shipCoords = {
-        //x: randomNumber(maxCoord),
-        //y: randomNumber(maxCoord)
-        x: arrayCoords[0],
-        y: arrayCoords[1]
+        x: this.resCoords[0],
+        y: this.resCoords[1]
     };
 
     //this.shoot = function() {
@@ -35,50 +52,37 @@ function Ship(size) {
     //}
 
     this.print = function () {
-        console.log('x: ' + this.shipCoords.x + ' y: ' + this.shipCoords.y);
+        console.log('x: ' + this.shipCoords.x + ' y: ' + this.shipCoords.y + ' array: ' + coordsArray);
     }
 }
-
-var ship1 = new Ship(1);
-var ship2 = new Ship(1);
-var ship3 = new Ship(1);
-var ship4 = new Ship(1);
-var ship5 = new Ship(1);
-var ship6 = new Ship(1);
-var ship7 = new Ship(1);
-var ship8 = new Ship(1);
-
 
 //ship1.shoot();
 //console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
 //             ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
 
-//generate random choice in array
-function randomChoiceInArr() {
-    var randomX = Math.floor(Math.random() * maxCoord);
-    var randomY = Math.floor(Math.random() * maxCoord);
-    xCoordsShip = arrX[randomX];
-    yCoordsShip = arrY[randomY];
-    arrayCoords = [xCoordsShip, yCoordsShip];
-    xCoordsShip = undefined;
-    yCoordsShip = undefined;
-    console.log(arrX + ' ' + arrY);
-    return arrayCoords;
-}
 //generate random number from 1 to n
 //function randomNumber(n) {
 //    return Math.floor(Math.random() * n) + 1;
 //}
 //check repeating of ships' coords
+var green = 'rgb(120, 201, 50)',
+    red = 'rgb(255, 0, 0)';
 function checkRepeating(el) {
-    if (getComputedStyle(el).backgroundColor === 'rgb(0, 128, 0)') {
-        el.css({
-            background: 'red'
-        });
+    if ((getComputedStyle(el).backgroundColor === green) ||
+        (getComputedStyle(el).backgroundColor === red))
+    {
+        //paint it red
+        el.css({ background: red });
+        //el.resCoords = convertNumber(randomChoiceInArr(coordsArray));
+        //el.shipCoords = {
+        //    x: el.resCoords[0],
+        //    y: el.resCoords[1]
+        //};
+        //console.log(el.resCoords);
+        //view.viewShip(el, cell);
     } else {
-        el.css({
-            background: 'green'
-        });
+        //paint it green
+        el.css({ background: green });
     }
 }
 //build view
@@ -96,10 +100,8 @@ var view = {
         var shipHorizHead = x - 1 + (y - 1) * maxCoord;
         for (var i = 0; i < obj.size; i++) {
             if (obj.dir === 'horizontal') {
-                //arr[shipHorizHead + i].style.background = 'green';
                 checkRepeating(arr[shipHorizHead + i]);
             } else {
-                //arr[x - 1 + (y - 1 + i) * maxCoord].style.background = 'green';
                 checkRepeating(arr[x - 1 + (y - 1 + i) * maxCoord]);
             }
         }
@@ -132,19 +134,13 @@ body.css({
     width: maxCoord * parseInt(styles.width) + maxCoord * parseInt(getComputedStyle(cell[0]).marginRight) + 'px'
 });
 
-view.viewShip(ship1, cell);
-view.viewShip(ship2, cell);
-view.viewShip(ship3, cell);
-view.viewShip(ship4, cell);
-view.viewShip(ship5, cell);
-view.viewShip(ship6, cell);
-view.viewShip(ship7, cell);
-view.viewShip(ship8, cell);
-ship1.print();
-ship2.print();
-ship3.print();
-ship4.print();
-ship5.print();
-ship6.print();
-ship7.print();
-ship8.print();
+//create ships
+(function createShips(qwe) {
+    var ships = [];
+    for (var l = 0; l < qwe; l++) {
+        var newShip = new Ship(1);
+        ships.push(newShip);
+        view.viewShip(ships[l], cell);
+        ships[l].print();
+    }
+})(numberOfShips);
