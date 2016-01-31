@@ -1,6 +1,6 @@
 //variables
-var sizeArea = 16;
-var numberOfShips = 10;
+var sizeArea = 100;
+var numberOfShips = 1;
 var maxCoord = Math.sqrt(sizeArea);
 var body = document.getElementsByTagName('body')[0];
 
@@ -10,20 +10,21 @@ for (var k = 1; k <= sizeArea; k++) {
 }
 
 //generate random choice in array
-function randomChoiceInArr(arr) {
-    var random = Math.floor(Math.random() * sizeArea);
+function randomChoiceInArr(arr, max) {
+    var random = Math.floor(Math.random() * max);
     return arr[random];
 }
 //convert number into coordinates
 function convertNumber(num) {
+    while (typeof num !== 'number') {
+        num = randomChoiceInArr(coordsArray, sizeArea);
+    }
     var x = num % maxCoord;
     if (x == 0) {
         x = maxCoord;
     }
     var y = Math.ceil(num / maxCoord);
-    //coordsArray[num - 1] = 1;
-    //coordsArray[num - 1] = undefined;
-    //console.log(num);
+    delete coordsArray[num - 1];
     return [x, y];
 }
 
@@ -33,9 +34,9 @@ function Ship(size) {
     //this.status = 'live';
 
     var direction = ['horizontal', 'vertical'];
-    this.dir = randomChoiceInArr(direction);
+    this.dir = randomChoiceInArr(direction, direction.length);
 
-    this.resCoords = convertNumber(randomChoiceInArr(coordsArray));
+    this.resCoords = convertNumber(randomChoiceInArr(coordsArray, sizeArea));
     this.shipCoords = {
         x: this.resCoords[0],
         y: this.resCoords[1]
@@ -51,19 +52,15 @@ function Ship(size) {
     //    return this;
     //}
 
-    this.print = function () {
-        console.log('x: ' + this.shipCoords.x + ' y: ' + this.shipCoords.y + ' array: ' + coordsArray);
-    }
+    //this.print = function () {
+    //    console.log('x: ' + this.shipCoords.x + ' y: ' + this.shipCoords.y + ' array: ' + coordsArray);
+    //}
 }
 
 //ship1.shoot();
 //console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
 //             ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
 
-//generate random number from 1 to n
-//function randomNumber(n) {
-//    return Math.floor(Math.random() * n) + 1;
-//}
 //check repeating of ships' coords
 var green = 'rgb(120, 201, 50)',
     red = 'rgb(255, 0, 0)';
@@ -73,13 +70,6 @@ function checkRepeating(el) {
     {
         //paint it red
         el.css({ background: red });
-        //el.resCoords = convertNumber(randomChoiceInArr(coordsArray));
-        //el.shipCoords = {
-        //    x: el.resCoords[0],
-        //    y: el.resCoords[1]
-        //};
-        //console.log(el.resCoords);
-        //view.viewShip(el, cell);
     } else {
         //paint it green
         el.css({ background: green });
@@ -115,9 +105,10 @@ var styles = {
     height: '50px',
     display: 'inline-block',
     background: 'lightgray',
-    margin: '0 4px 0 0'
+    margin: '0 4px 0 0',
+    cursor: 'pointer'
 };
-Object.prototype.css = function (obj) {
+HTMLElement.prototype.css = function (obj) {
     for (var prop in obj) {
         if (obj.hasOwnProperty(prop)) {
             this.style.setProperty(prop, obj[prop], null);
@@ -135,12 +126,12 @@ body.css({
 });
 
 //create ships
-(function createShips(qwe) {
+(function createShips() {
     var ships = [];
-    for (var l = 0; l < qwe; l++) {
-        var newShip = new Ship(1);
+    for (var l = 0; l < numberOfShips; l++) {
+        var newShip = new Ship(3);
         ships.push(newShip);
         view.viewShip(ships[l], cell);
-        ships[l].print();
+        //ships[l].print();
     }
-})(numberOfShips);
+})();
