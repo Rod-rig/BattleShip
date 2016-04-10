@@ -1,65 +1,38 @@
-//variables
+//constants
 var sizeArea = 100;
 var numberOfShips = 1;
 var maxCoord = Math.sqrt(sizeArea);
+
+//variables
 var body = document.getElementsByTagName('body')[0];
 
-var coordsArray = [];
-for (var k = 1; k <= sizeArea; k++) {
-    coordsArray.push(k);
-}
+var directions =  ['vertical', 'horizontal'];
 
-//generate random choice in array
-function randomChoiceInArr(arr, max) {
-    var random = Math.floor(Math.random() * max);
-    return arr[random];
-}
-//convert number into coordinates
-function convertNumber(num) {
-    while (typeof num !== 'number') {
-        num = randomChoiceInArr(coordsArray, sizeArea);
-    }
-    var x = num % maxCoord;
-    if (x == 0) {
-        x = maxCoord;
-    }
-    var y = Math.ceil(num / maxCoord);
-    delete coordsArray[num - 1];
-    return [x, y];
+/**
+ * @param max {number}
+ * @returns {number} - return number from 1 to max
+ */
+function generateRandom(max) {
+    return Math.floor(Math.random() * max) + 1;
 }
 
 //ship properties
 function Ship(size) {
     this.size = size;
-    //this.status = 'live';
 
-    var direction = ['horizontal', 'vertical'];
-    this.dir = randomChoiceInArr(direction, direction.length);
+    this.status = 'live';
 
-    this.resCoords = convertNumber(randomChoiceInArr(coordsArray, sizeArea));
+    this.dir = directions[generateRandom(directions.length)];
     this.shipCoords = {
-        x: this.resCoords[0],
-        y: this.resCoords[1]
+        x: generateRandom(maxCoord),
+        y: generateRandom(maxCoord)
     };
+    this.area = 3;
 
-    //this.shoot = function() {
-    //    if (this.size > 1) {
-    //        this.size--;
-    //    } else {
-    //        this.size = 0;
-    //        this.status = 'dead';
-    //    }
-    //    return this;
-    //}
-
-    //this.print = function () {
-    //    console.log('x: ' + this.shipCoords.x + ' y: ' + this.shipCoords.y + ' array: ' + coordsArray);
-    //}
+    this.print = function () {
+        console.log('Ship coords: ' + this.shipCoords.x + ' ' + this.shipCoords.y);
+    }
 }
-
-//ship1.shoot();
-//console.log('ship1: ' + ship1.status + '\nsize: ' + ship1.size + '\ndirection: ' + ship1.dir + '\ncoords: ' +
-//             ship1.shipCoords.x + ' ' + ship1.shipCoords.y);
 
 //check repeating of ships' coords
 var green = 'rgb(120, 201, 50)',
@@ -132,6 +105,6 @@ body.css({
         var newShip = new Ship(3);
         ships.push(newShip);
         view.viewShip(ships[l], cell);
-        //ships[l].print();
+        ships[l].print();
     }
 })();
