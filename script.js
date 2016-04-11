@@ -8,29 +8,76 @@ var body = document.getElementsByTagName('body')[0];
 
 var directions =  ['vertical', 'horizontal'];
 
+//helpful functions
 /**
  * @param max {number}
  * @returns {number} - return number from 1 to max
  */
-function generateRandom(max) {
+function makeRandom(max) {
     return Math.floor(Math.random() * max) + 1;
+}
+//convert coords to order of cell
+function orderFromCoords(areaObj) {
+    var x = areaObj.x,
+        y = areaObj.y;
+    return (y - 1) * maxCoord + (x - 1);
+}
+/**
+ * @param ship {Object}
+ * @returns {Array} - example [{x: 2, y: 5}, {x: 2, y: 6}, {x: 2, y: 7}]
+ */
+function calcArea(ship) {
+    var coordX = ship.shipCoords.x,
+        coordY = ship.shipCoords.y,
+        coordArr = [{
+            x: coordX,
+            y: coordY
+        }];
+
+    if(ship.size === 1) {
+        return coordArr;
+    }
+
+    if (ship.dir === 'horizontal') {
+        for (var i = 1; i < ship.size; i++) {
+            coordX += 1;
+            coordArr.push({
+                x: coordX,
+                y: coordY
+            })
+        }
+        console.log(coordArr);
+        return coordArr;
+    } else {
+        for (var j = 1; j < ship.size; j++) {
+            coordY += 1;
+            coordArr.push({
+                x: coordX,
+                y: coordY
+            })
+        }
+        console.log(coordArr);
+        return coordArr;
+    }
 }
 
 //ship properties
 function Ship(size) {
     this.size = size;
 
-    this.status = 'live';
+    // this.status = 'live';
 
-    this.dir = directions[generateRandom(directions.length)];
+    this.dir = directions[makeRandom(directions.length) - 1];
     this.shipCoords = {
-        x: generateRandom(maxCoord),
-        y: generateRandom(maxCoord)
+        x: makeRandom(maxCoord),
+        y: makeRandom(maxCoord)
     };
-    this.area = 3;
+    this.areaCoords = calcArea(this);
 
     this.print = function () {
-        console.log('Ship coords: ' + this.shipCoords.x + ' ' + this.shipCoords.y);
+        console.log('Ship coords: ' + this.shipCoords.x + ' ' + this.shipCoords.y +
+            '\nSize: ' + this.size +
+            '\nDirection: ' + this.dir);
     }
 }
 
@@ -58,15 +105,9 @@ var view = {
         }
     },
     viewShip: function (obj, arr) {
-        var x = obj.shipCoords.x;
-        var y = obj.shipCoords.y;
-        var shipHorizHead = x - 1 + (y - 1) * maxCoord;
-        for (var i = 0; i < obj.size; i++) {
-            if (obj.dir === 'horizontal') {
-                checkRepeating(arr[shipHorizHead + i]);
-            } else {
-                checkRepeating(arr[x - 1 + (y - 1 + i) * maxCoord]);
-            }
+        for (var i = 0; i< obj.size; i++) {
+            var cellNumber = orderFromCoords(obj.areaCoords[i]);
+            checkRepeating(arr[cellNumber]);
         }
     }
 };
@@ -102,7 +143,7 @@ body.css({
 (function createShips() {
     var ships = [];
     for (var l = 0; l < numberOfShips; l++) {
-        var newShip = new Ship(3);
+        var newShip = new Ship(2);
         ships.push(newShip);
         view.viewShip(ships[l], cell);
         ships[l].print();
