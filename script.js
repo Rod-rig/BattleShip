@@ -1,12 +1,12 @@
 //constants
-var sizeArea = 100;
+var sizeArea = 4;
 var numberOfShips = 1;
 var maxCoord = Math.sqrt(sizeArea);
 
 //variables
 var body = document.getElementsByTagName('body')[0];
 
-var directions =  ['vertical', 'horizontal'];
+var directions = ['vertical', 'horizontal'];
 
 //helpful functions
 /**
@@ -27,8 +27,8 @@ function orderFromCoords(areaObj) {
  * @returns {Array} - example [{x: 2, y: 5}, {x: 2, y: 6}, {x: 2, y: 7}]
  */
 function calcArea(ship) {
-    var coordX = ship.shipCoords.x,
-        coordY = ship.shipCoords.y,
+    var coordX = makeRandom(maxCoord),
+        coordY = makeRandom(maxCoord),
         coordArr = [{
             x: coordX,
             y: coordY
@@ -38,27 +38,45 @@ function calcArea(ship) {
         return coordArr;
     }
 
-    if (ship.dir === 'horizontal') {
-        for (var i = 1; i < ship.size; i++) {
-            coordX += 1;
-            coordArr.push({
-                x: coordX,
-                y: coordY
-            })
-        }
-        console.log(coordArr);
-        return coordArr;
+    if ((!isContained(ship, coordX) && isHorizontal(ship.dir)) || (!isContained(ship, coordY) && isVertical(ship.dir))) {
+        coordX = makeRandom(maxCoord);
+        coordY = makeRandom(maxCoord);
+        return calcArea(ship);
     } else {
-        for (var j = 1; j < ship.size; j++) {
-            coordY += 1;
-            coordArr.push({
-                x: coordX,
-                y: coordY
-            })
+        if (isHorizontal(ship.dir)) {
+            for (var i = 1; i < ship.size; i++) {
+                coordX += 1;
+                coordArr.push({
+                    x: coordX,
+                    y: coordY
+                })
+            }
+            return coordArr;
+        } else if (isVertical(ship.dir)) {
+            for (var j = 1; j < ship.size; j++) {
+                coordY += 1;
+                coordArr.push({
+                    x: coordX,
+                    y: coordY
+                })
+            }
+            return coordArr;
         }
-        console.log(coordArr);
-        return coordArr;
     }
+}
+
+//check is areaCoords correct
+function isContained(ship, coord) {
+    var size = ship.size - 1;
+    return (coord + size <= maxCoord);
+}
+
+//check directions
+function isHorizontal(dir) {
+    if(dir === "horizontal") return true;
+}
+function isVertical(dir) {
+    if(dir === "vertical") return true;
 }
 
 //ship properties
@@ -68,14 +86,10 @@ function Ship(size) {
     // this.status = 'live';
 
     this.dir = directions[makeRandom(directions.length) - 1];
-    this.shipCoords = {
-        x: makeRandom(maxCoord),
-        y: makeRandom(maxCoord)
-    };
-    this.areaCoords = calcArea(this);
+    this.shipCoords = calcArea(this);
 
     this.print = function () {
-        console.log('Ship coords: ' + this.shipCoords.x + ' ' + this.shipCoords.y +
+        console.log('Ship coords: ', this.shipCoords,
             '\nSize: ' + this.size +
             '\nDirection: ' + this.dir);
     }
@@ -105,8 +119,8 @@ var view = {
         }
     },
     viewShip: function (obj, arr) {
-        for (var i = 0; i< obj.size; i++) {
-            var cellNumber = orderFromCoords(obj.areaCoords[i]);
+        for (var i = 0; i < obj.size; i++) {
+            var cellNumber = orderFromCoords(obj.shipCoords[i]);
             checkRepeating(arr[cellNumber]);
         }
     }
