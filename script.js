@@ -1,5 +1,5 @@
 //constants
-var sizeArea = 4;
+var sizeArea = 100;
 var numberOfShips = 1;
 var maxCoord = Math.sqrt(sizeArea);
 
@@ -20,6 +20,9 @@ function makeRandom(max) {
 function orderFromCoords(areaObj) {
     var x = areaObj.x,
         y = areaObj.y;
+    if (x < 1 || x > maxCoord || y < 1 || y > maxCoord) {
+        return false;
+    }
     return (y - 1) * maxCoord + (x - 1);
 }
 /**
@@ -34,7 +37,7 @@ function calcArea(ship) {
             y: coordY
         }];
 
-    if(ship.size === 1) {
+    if (ship.size === 1) {
         return coordArr;
     }
 
@@ -79,6 +82,43 @@ function isVertical(dir) {
     if(dir === "vertical") return true;
 }
 
+/**
+ * @param ship
+ * @returns {Array} [{x: 2, y: 5}, {x: 2, y: 6}, {x: 2, y: 7}]
+ */
+function findGap(ship) {
+    var head = ship.shipCoords[0],
+        x = head.x,
+        y = head.y,
+        dir = ship.dir,
+        size = ship.size,
+        gap = [];
+
+    if (isVertical(dir)) {
+        for (var i = 0; i < size; i++) {
+            gap.push({x: x - 1, y: y + i});
+            gap.push({x: x + 1, y: y + i});
+        }
+        for (var j = -1; j <= 1; j++) {
+            gap.push({x: x - j, y: y - 1});
+            gap.push({x: x - j, y: y + size});
+        }
+    }
+
+    if (isHorizontal(dir)) {
+        for (var k = 0; k < size; k++) {
+            gap.push({x: x + k, y: y - 1});
+            gap.push({x: x + k, y: y + 1});
+        }
+        for (var l = -1; l <= 1; l++) {
+            gap.push({x: x - 1, y: y - l});
+            gap.push({x: x + size, y: y - l});
+        }
+    }
+
+    return gap;
+}
+
 //ship properties
 function Ship(size) {
     this.size = size;
@@ -88,9 +128,11 @@ function Ship(size) {
     this.dir = directions[makeRandom(directions.length) - 1];
     this.shipCoords = calcArea(this);
 
+    this.gap = findGap(this);
+
     this.print = function () {
-        console.log('Ship coords: ', this.shipCoords,
-            '\nSize: ' + this.size +
+        console.table(this.shipCoords);
+        console.log('Size: ' + this.size +
             '\nDirection: ' + this.dir);
     }
 }
@@ -118,15 +160,24 @@ var view = {
             body.appendChild(div);
         }
     },
-    viewShip: function (obj, arr) {
+    viewShips: function (obj, arr) {
         for (var i = 0; i < obj.size; i++) {
-            var cellNumber = orderFromCoords(obj.shipCoords[i]);
-            checkRepeating(arr[cellNumber]);
+            var cellShip = orderFromCoords(obj.shipCoords[i]);
+            checkRepeating(arr[cellShip]);
+        }
+
+        for (var j = 0; j < obj.gap.length; j++) {
+            var cellGap = orderFromCoords(obj.gap[j]);
+            if (arr[cellGap] !== undefined) {
+                arr[cellGap].css({'background': 'yellow'});
+            }
         }
     }
 };
 
+//create cells
 view.generateCells(sizeArea);
+
 //styles
 var styles = {
     width: '50px',
@@ -157,9 +208,9 @@ body.css({
 (function createShips() {
     var ships = [];
     for (var l = 0; l < numberOfShips; l++) {
-        var newShip = new Ship(2);
+        var newShip = new Ship(3);
         ships.push(newShip);
-        view.viewShip(ships[l], cell);
+        view.viewShips(ships[l], cell);
         ships[l].print();
     }
 })();
