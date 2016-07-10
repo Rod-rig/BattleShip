@@ -1,7 +1,10 @@
 //constants
-var sizeArea = 100;
-var numberOfShips = 1;
-var maxCoord = Math.sqrt(sizeArea);
+var field = {
+    sizeArea: 25,
+    numberOfShips: 2,
+    notAvail: []
+};
+maxCoord = Math.sqrt(field.sizeArea);
 
 //variables
 var body = document.getElementsByTagName('body')[0];
@@ -52,7 +55,7 @@ function calcArea(ship) {
                 coordArr.push({
                     x: coordX,
                     y: coordY
-                })
+                });
             }
             return coordArr;
         } else if (isVertical(ship.dir)) {
@@ -61,7 +64,7 @@ function calcArea(ship) {
                 coordArr.push({
                     x: coordX,
                     y: coordY
-                })
+                });
             }
             return coordArr;
         }
@@ -176,7 +179,7 @@ var view = {
 };
 
 //create cells
-view.generateCells(sizeArea);
+view.generateCells(field.sizeArea);
 
 //styles
 var styles = {
@@ -207,7 +210,7 @@ body.css({
 //create ships
 (function createShips() {
     var ships = [];
-    for (var l = 0; l < numberOfShips; l++) {
+    for (var l = 0; l < field.numberOfShips; l++) {
         var newShip = new Ship(3);
         ships.push(newShip);
         view.viewShips(ships[l], cell);
