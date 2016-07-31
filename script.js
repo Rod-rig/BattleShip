@@ -1,7 +1,7 @@
 //constants
 var field = {
-    sizeArea: 25,
-    numberOfShips: 2,
+    sizeArea: 100,
+    numberOfShips: 5,
     notAvail: []
 };
 maxCoord = Math.sqrt(field.sizeArea);
@@ -28,6 +28,33 @@ function orderFromCoords(areaObj) {
     }
     return (y - 1) * maxCoord + (x - 1);
 }
+//collect all ship coords
+function collectNotAvailCoords(shipCoords) {
+    shipCoords.forEach(function (i) {
+        field.notAvail.push(orderFromCoords(i));
+    });
+}
+//check is avail coords for new ship
+function checkIsUnique(ship, headCoords) {
+    var fieldCoord = orderFromCoords(headCoords[0]);
+
+    if (isHorizontal(ship.dir)) {
+        for (var i = 0; i < ship.size; i++) {
+            if (field.notAvail.indexOf(fieldCoord + i) > -1) {
+                return false;
+            }
+        }
+        return true;
+    } else if (isVertical(ship.dir)) {
+        for (var j = 0; j < ship.size; j++) {
+            if (field.notAvail.indexOf(fieldCoord + j * maxCoord) > -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
 /**
  * @param ship {Object}
  * @returns {Array} - example [{x: 2, y: 5}, {x: 2, y: 6}, {x: 2, y: 7}]
@@ -44,7 +71,8 @@ function calcArea(ship) {
         return coordArr;
     }
 
-    if ((!isContained(ship, coordX) && isHorizontal(ship.dir)) || (!isContained(ship, coordY) && isVertical(ship.dir))) {
+    //if !(horizontally or vertically ship place in field) or !(ship coord is unique)
+    if ((!isContained(ship, coordX) && isHorizontal(ship.dir)) || (!isContained(ship, coordY) && isVertical(ship.dir)) || !checkIsUnique(ship, coordArr)) {
         coordX = makeRandom(maxCoord);
         coordY = makeRandom(maxCoord);
         return calcArea(ship);
@@ -57,6 +85,7 @@ function calcArea(ship) {
                     y: coordY
                 });
             }
+            collectNotAvailCoords(coordArr);
             return coordArr;
         } else if (isVertical(ship.dir)) {
             for (var j = 1; j < ship.size; j++) {
@@ -66,6 +95,7 @@ function calcArea(ship) {
                     y: coordY
                 });
             }
+            collectNotAvailCoords(coordArr);
             return coordArr;
         }
     }
@@ -136,7 +166,7 @@ function Ship(size) {
     this.print = function () {
         console.table(this.shipCoords);
         console.log('Size: ' + this.size +
-            '\nDirection: ' + this.dir);
+            '\nDirection: ' + this.dir + '\nNot Avail Coords: ' + field.notAvail);
     }
 }
 
@@ -171,7 +201,7 @@ var view = {
 
         for (var j = 0; j < obj.gap.length; j++) {
             var cellGap = orderFromCoords(obj.gap[j]);
-            if (arr[cellGap] !== undefined) {
+            if (arr[cellGap] !== undefined && getComputedStyle(arr[cellGap]).backgroundColor !== green) {
                 arr[cellGap].css({'background': 'yellow'});
             }
         }
@@ -209,11 +239,20 @@ body.css({
 
 //create ships
 (function createShips() {
-    var ships = [];
     for (var l = 0; l < field.numberOfShips; l++) {
         var newShip = new Ship(3);
-        ships.push(newShip);
-        view.viewShips(ships[l], cell);
-        ships[l].print();
+        view.viewShips(newShip, cell);
+        newShip.print();
     }
 })();
+// function createShips(shipsConfig) {
+//     for (var key in shipsConfig) {
+//         while (shipsConfig[key] > 0) {
+//             var newShip = new Ship(key);
+//             view.viewShips(newShip, cell);
+//             newShip.print();
+//             shipsConfig[key]--;
+//         }
+//     }
+// }
+// createShips({2: 3, 3: 2});
