@@ -67,8 +67,13 @@ function calcArea(ship) {
             y: coordY
         }];
 
-    if (ship.size === 1) {
+    if (ship.size === 1 && checkIsUnique(ship, coordArr)) {
+        collectNotAvailCoords(coordArr);
         return coordArr;
+    } else if (ship.size === 1 && !checkIsUnique(ship, coordArr)){
+        coordX = makeRandom(maxCoord);
+        coordY = makeRandom(maxCoord);
+        return calcArea(ship);
     }
 
     //if !(horizontally or vertically ship place in field) or !(ship coord is unique)
@@ -149,12 +154,14 @@ function findGap(ship) {
         }
     }
 
+    collectNotAvailCoords(gap);
     return gap;
 }
 
 //ship properties
 function Ship(size) {
-    this.size = size;
+    //transform string into number
+    this.size = +size;
 
     // this.status = 'live';
 
@@ -237,22 +244,15 @@ body.css({
     width: maxCoord * parseInt(styles.width) + maxCoord * parseInt(getComputedStyle(cell[0]).marginRight) + 'px'
 });
 
-//create ships
-(function createShips() {
-    for (var l = 0; l < field.numberOfShips; l++) {
-        var newShip = new Ship(3);
-        view.viewShips(newShip, cell);
-        newShip.print();
+function createShips(shipsConfig) {
+    for (var key in shipsConfig) {
+        var shipNumber = shipsConfig[key];
+        while (shipNumber > 0) {
+            var newShip = new Ship(key);
+            view.viewShips(newShip, cell);
+            newShip.print();
+            shipNumber--;
+        }
     }
-})();
-// function createShips(shipsConfig) {
-//     for (var key in shipsConfig) {
-//         while (shipsConfig[key] > 0) {
-//             var newShip = new Ship(key);
-//             view.viewShips(newShip, cell);
-//             newShip.print();
-//             shipsConfig[key]--;
-//         }
-//     }
-// }
-// createShips({2: 3, 3: 2});
+}
+createShips({1: 4, 2: 3, 3: 2, 4: 1});
