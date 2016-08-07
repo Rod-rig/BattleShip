@@ -2,7 +2,9 @@
 var field = {
     sizeArea: 100,
     numberOfShips: 5,
-    notAvail: []
+    notAvail: [],
+    ships: [],
+    numberOfShots: 0
 };
 maxCoord = Math.sqrt(field.sizeArea);
 
@@ -29,10 +31,15 @@ function orderFromCoords(areaObj) {
     return (y - 1) * maxCoord + (x - 1);
 }
 //collect all ship coords
-function collectNotAvailCoords(shipCoords) {
+function collectNotAvailCoords(shipCoords, isShip) {
     shipCoords.forEach(function (i) {
         field.notAvail.push(orderFromCoords(i));
     });
+    if (isShip) {
+        shipCoords.forEach(function (i) {
+            field.ships.push(orderFromCoords(i));
+        });
+    }
 }
 //check is avail coords for new ship
 function checkIsUnique(ship, headCoords) {
@@ -68,7 +75,7 @@ function calcArea(ship) {
         }];
 
     if (ship.size === 1 && checkIsUnique(ship, coordArr)) {
-        collectNotAvailCoords(coordArr);
+        collectNotAvailCoords(coordArr, true);
         return coordArr;
     } else if (ship.size === 1 && !checkIsUnique(ship, coordArr)){
         coordX = makeRandom(maxCoord);
@@ -90,7 +97,7 @@ function calcArea(ship) {
                     y: coordY
                 });
             }
-            collectNotAvailCoords(coordArr);
+            collectNotAvailCoords(coordArr, true);
             return coordArr;
         } else if (isVertical(ship.dir)) {
             for (var j = 1; j < ship.size; j++) {
@@ -100,7 +107,7 @@ function calcArea(ship) {
                     y: coordY
                 });
             }
-            collectNotAvailCoords(coordArr);
+            collectNotAvailCoords(coordArr, true);
             return coordArr;
         }
     }
@@ -163,7 +170,7 @@ function Ship(size) {
     //transform string into number
     this.size = +size;
 
-    // this.status = 'live';
+    this.status = 'live';
 
     this.dir = directions[makeRandom(directions.length) - 1];
     this.shipCoords = calcArea(this);
@@ -212,6 +219,9 @@ var view = {
                 arr[cellGap].css({'background': 'yellow'});
             }
         }
+    },
+    paintShootedCoord: function (shootedCoord, color) {
+        cell[shootedCoord].css({'background': color});
     }
 };
 
@@ -225,7 +235,8 @@ var styles = {
     display: 'inline-block',
     background: 'lightgray',
     margin: '0 4px 0 0',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    transition: 'all 0.2s'
 };
 HTMLElement.prototype.css = function (obj) {
     for (var prop in obj) {
@@ -239,6 +250,9 @@ var cell = document.querySelectorAll('.cell');
 
 for (var i = 0; i < cell.length; i++) {
     cell[i].css(styles);
+    //add click listener
+    cell[i].addEventListener('click', shoot);
+    cell[i].addEventListener('contextmenu', makeTip);
 }
 body.css({
     width: maxCoord * parseInt(styles.width) + maxCoord * parseInt(getComputedStyle(cell[0]).marginRight) + 'px'
@@ -249,10 +263,45 @@ function createShips(shipsConfig) {
         var shipNumber = shipsConfig[key];
         while (shipNumber > 0) {
             var newShip = new Ship(key);
-            view.viewShips(newShip, cell);
-            newShip.print();
+            // view.viewShips(newShip, cell);
+            // newShip.print();
             shipNumber--;
         }
     }
 }
 createShips({1: 4, 2: 3, 3: 2, 4: 1});
+
+
+//controls
+function findAllPreviousElements(node) {
+    var prevAll = [];
+    while (node.className === 'cell') {
+        node = node.previousSibling;
+        prevAll.push(node);
+    }
+    return prevAll;
+}
+function getShipNumber(node) {
+    //numbering starts from 0
+    return findAllPreviousElements(node).length - 1;
+}
+function isInArray(arr, el) {
+    return arr.indexOf(el) >= 0;
+}
+function shoot() {
+    field.numberOfShips += 1;
+    var shootCoord = getShipNumber(this);
+    if (isInArray(field.ships, shootCoord)) {
+        view.paintShootedCoord(shootCoord, green);
+        // console.log('injured');
+    } else {
+        // console.log('missed');
+        view.paintShootedCoord(shootCoord, red);
+    }
+    // console.log(shootCoord);
+}
+
+function makeTip() {
+    var shootCoord = getShipNumber(this);
+    view.paintShootedCoord(shootCoord, 'yellow');
+}
