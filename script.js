@@ -1,10 +1,11 @@
 //constants
 var field = {
-    sizeArea: 100,
-    numberOfShips: 5,
+    sizeArea: 16,
+    // numberOfShips: 5,
     notAvail: [],
-    ships: [],
-    numberOfShots: 0
+    ships: [],      //order of ships in field
+    numberOfShots: 0,
+    shots: []
 };
 maxCoord = Math.sqrt(field.sizeArea);
 
@@ -200,11 +201,15 @@ function checkRepeating(el) {
 }
 //build view
 var view = {
+    makeDiv: function (className) {
+        var div = document.createElement('div');
+        div.className = className;
+        body.appendChild(div);
+        return div;
+    },
     generateCells: function (n) {
         for (var i = n; i >= 1; i--) {
-            var div = document.createElement('div');
-            div.className = 'cell';
-            body.appendChild(div);
+            view.makeDiv('cell');
         }
     },
     viewShips: function (obj, arr) {
@@ -220,13 +225,21 @@ var view = {
             }
         }
     },
-    paintShootedCoord: function (shootedCoord, color) {
+    paintChosenCoord: function (shootedCoord, color) {
         cell[shootedCoord].css({'background': color});
+    },
+    addStat: function () {
+        view.statContainer = view.makeDiv('stat');
+        view.updateStat();
+    },
+    updateStat: function () {
+        view.statContainer.innerText = "Number of shots: " + field.numberOfShots;
     }
 };
 
 //create cells
 view.generateCells(field.sizeArea);
+view.addStat();
 
 //styles
 var styles = {
@@ -263,13 +276,15 @@ function createShips(shipsConfig) {
         var shipNumber = shipsConfig[key];
         while (shipNumber > 0) {
             var newShip = new Ship(key);
+
+            // view all ships
             // view.viewShips(newShip, cell);
             // newShip.print();
             shipNumber--;
         }
     }
 }
-createShips({1: 4, 2: 3, 3: 2, 4: 1});
+createShips({1: 1, 2: 1, 3: 0, 4: 0});
 
 
 //controls
@@ -288,20 +303,27 @@ function getShipNumber(node) {
 function isInArray(arr, el) {
     return arr.indexOf(el) >= 0;
 }
-function shoot() {
-    field.numberOfShips += 1;
-    var shootCoord = getShipNumber(this);
-    if (isInArray(field.ships, shootCoord)) {
-        view.paintShootedCoord(shootCoord, green);
-        // console.log('injured');
-    } else {
-        // console.log('missed');
-        view.paintShootedCoord(shootCoord, red);
+function updateShotStat(coord) {
+    var isNewShot = isInArray(field.shots, coord);
+    if (!isNewShot) {
+        field.shots.push(coord);
+        field.numberOfShots += 1;
+        view.updateStat();
     }
-    // console.log(shootCoord);
+}
+function shoot() {
+    var shootCoord = getShipNumber(this),
+        isAccurateShot = isInArray(field.ships, shootCoord);
+
+    updateShotStat(shootCoord);
+    if (isAccurateShot) {
+        view.paintChosenCoord(shootCoord, green);
+    } else {
+        view.paintChosenCoord(shootCoord, red);
+    }
 }
 
 function makeTip() {
     var shootCoord = getShipNumber(this);
-    view.paintShootedCoord(shootCoord, 'yellow');
+    view.paintChosenCoord(shootCoord, 'yellow');
 }
