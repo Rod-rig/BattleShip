@@ -4,6 +4,7 @@ var field = {
     // numberOfShips: 5,
     notAvail: [],
     ships: [],      //order of ships in field
+    shipObjects: [],
     numberOfShots: 0,
     shots: []
 };
@@ -30,6 +31,13 @@ function orderFromCoords(areaObj) {
         return false;
     }
     return (y - 1) * maxCoord + (x - 1);
+}
+function putOrdersInArray(arrCoords) {
+    var ordersArr = [];
+    arrCoords.forEach(function (i) {
+        ordersArr.push(orderFromCoords(i));
+    });
+    return ordersArr;
 }
 //collect all ship coords
 function collectNotAvailCoords(shipCoords, isShip) {
@@ -175,6 +183,7 @@ function Ship(size) {
 
     this.dir = directions[makeRandom(directions.length) - 1];
     this.shipCoords = calcArea(this);
+    this.shipOrder = putOrdersInArray(this.shipCoords);
 
     this.gap = findGap(this);
 
@@ -276,6 +285,7 @@ function createShips(shipsConfig) {
         var shipNumber = shipsConfig[key];
         while (shipNumber > 0) {
             var newShip = new Ship(key);
+            field.shipObjects.push(newShip);
 
             // view all ships
             // view.viewShips(newShip, cell);
@@ -285,6 +295,7 @@ function createShips(shipsConfig) {
     }
 }
 createShips({1: 1, 2: 1, 3: 0, 4: 0});
+// console.log(field.shipObjects);
 
 
 //controls
@@ -303,6 +314,14 @@ function getShipNumber(node) {
 function isInArray(arr, el) {
     return arr.indexOf(el) >= 0;
 }
+function getShipById(shipCoord) {
+    for (var i = 0; i < field.shipObjects.length; i++) {
+        if (isInArray(field.shipObjects[i].shipOrder, shipCoord)) {
+            return field.shipObjects[i];
+        }
+    }
+}
+
 function updateShotStat(coord) {
     var isNewShot = isInArray(field.shots, coord);
     if (!isNewShot) {
@@ -311,12 +330,23 @@ function updateShotStat(coord) {
         view.updateStat();
     }
 }
+
+function updateShootedShipStat(ship) {
+    ship.size -= 1;
+    ship.status = ship.size === 0 ? "killed" : "injured";
+    return ship;
+}
+
 function shoot() {
     var shootCoord = getShipNumber(this),
         isAccurateShot = isInArray(field.ships, shootCoord);
 
     updateShotStat(shootCoord);
+
     if (isAccurateShot) {
+        var shootedShip = getShipById(shootCoord);
+        updateShootedShipStat(shootedShip);
+        console.log(shootedShip);
         view.paintChosenCoord(shootCoord, green);
     } else {
         view.paintChosenCoord(shootCoord, red);
