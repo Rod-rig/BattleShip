@@ -1,7 +1,6 @@
 //constants
 var field = {
-    sizeArea: 16,
-    // numberOfShips: 5,
+    sizeArea: 100,
     notAvail: [],
     ships: [],      //order of ships in field
     shipObjects: [],
@@ -294,8 +293,7 @@ function createShips(shipsConfig) {
         }
     }
 }
-createShips({1: 1, 2: 1, 3: 0, 4: 0});
-// console.log(field.shipObjects);
+createShips({1: 4, 2: 3, 3: 2, 4: 1});
 
 
 //controls
