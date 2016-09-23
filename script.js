@@ -239,10 +239,10 @@ var view = {
     },
     addStat: function () {
         view.statContainer = view.makeDiv('stat');
-        view.updateStat();
     },
-    updateStat: function () {
-        view.statContainer.innerText = "Number of shots: " + field.numberOfShots;
+    writeMessage: function (msg, number) {
+        view.addStat();
+        view.statContainer.innerText = msg + number;
     }
 };
 
@@ -314,41 +314,62 @@ function getShipNumber(node) {
 function isInArray(arr, el) {
     return arr.indexOf(el) >= 0;
 }
-function getShipById(shipCoord) {
+function isKilled(ship) {
+    return ship.status === 'killed';
+}
+function isNewShot(coord) {
+    return !isInArray(field.shots, coord);
+}
+function getShipByOrderNumber(shipCoord) {
     for (var i = 0; i < field.shipObjects.length; i++) {
         if (isInArray(field.shipObjects[i].shipOrder, shipCoord)) {
             return field.shipObjects[i];
         }
     }
 }
+function checkIsWinner() {
+    if (field.shipObjects.length === 0) {
+        view.writeMessage("Winner!!!", "");
+    }
+}
+
+function updateShipList(ship) {
+    if (isKilled(ship)) {
+        var shipIndex = field.shipObjects.indexOf(ship);
+        field.shipObjects.splice(shipIndex, 1);
+    }
+}
 
 function updateShotStat(coord) {
-    var isNewShot = isInArray(field.shots, coord);
-    if (!isNewShot) {
+    if (isNewShot(coord)) {
         field.shots.push(coord);
         field.numberOfShots += 1;
-        view.updateStat();
+        view.writeMessage("Number of shots: ", field.numberOfShots);
     }
 }
 
 function updateShootedShipStat(ship) {
-    ship.size -= 1;
+    if (ship.size > 0) ship.size -= 1;
     ship.status = ship.size === 0 ? "killed" : "injured";
     return ship;
 }
 
 function shoot() {
     var shootCoord = getShipNumber(this),
-        isAccurateShot = isInArray(field.ships, shootCoord);
+        isAccurateShot = isInArray(field.ships, shootCoord),
+        isAnotherShot = isNewShot(shootCoord);
 
     updateShotStat(shootCoord);
 
-    if (isAccurateShot) {
-        var shootedShip = getShipById(shootCoord);
+    if (isAccurateShot && isAnotherShot) {
+        var shootedShip = getShipByOrderNumber(shootCoord);
         updateShootedShipStat(shootedShip);
-        console.log(shootedShip);
+        updateShipList(shootedShip);
+
+        view.writeMessage("Shooted ship status: ", shootedShip.status);
         view.paintChosenCoord(shootCoord, green);
-    } else {
+        checkIsWinner();
+    } else if (isAnotherShot) {
         view.paintChosenCoord(shootCoord, red);
     }
 }
