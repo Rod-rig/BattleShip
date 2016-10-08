@@ -196,17 +196,6 @@ function Ship(size) {
 //check repeating of ships' coords
 var green = 'rgb(120, 201, 50)',
     red = 'rgb(255, 0, 0)';
-function checkRepeating(el) {
-    if ((getComputedStyle(el).backgroundColor === green) ||
-        (getComputedStyle(el).backgroundColor === red))
-    {
-        //paint it red
-        el.css({ background: red });
-    } else {
-        //paint it green
-        el.css({ background: green });
-    }
-}
 //build view
 var view = {
     makeDiv: function (className) {
@@ -220,34 +209,39 @@ var view = {
             view.makeDiv('cell');
         }
     },
-    viewShips: function (obj, arr) {
+
+    //view ship in field
+    viewShips: function (obj) {
         for (var i = 0; i < obj.size; i++) {
             var cellShip = orderFromCoords(obj.shipCoords[i]);
-            checkRepeating(arr[cellShip]);
+            cell[cellShip].css({ background: green });
         }
-
-        for (var j = 0; j < obj.gap.length; j++) {
-            var cellGap = orderFromCoords(obj.gap[j]);
-            if (arr[cellGap] !== undefined && getComputedStyle(arr[cellGap]).backgroundColor !== green) {
-                arr[cellGap].css({'background': 'yellow'});
+        return this;
+    },
+    //view ship gap in field
+    viewShipsGap: function (obj) {
+        obj.gap.forEach(function (item) {
+            var killedShipGap = orderFromCoords(item);
+            if (cell[killedShipGap] && cell[killedShipGap].css('backgroundColor') !== red) {
+                view.paintChosenCoord(killedShipGap, 'yellow');
             }
+        });
+        return this;
+    },
+
+    paintChosenCoord: function (shootedCoord, color) {
+        var shootedCell = cell[shootedCoord];
+        if (shootedCell) {
+            shootedCell.css({'background': color});
         }
     },
-    paintChosenCoord: function (shootedCoord, color) {
-        cell[shootedCoord].css({'background': color});
-    },
-    addStat: function () {
-        view.statContainer = view.makeDiv('stat');
-    },
-    writeMessage: function (msg, number) {
-        view.addStat();
-        view.statContainer.innerText = msg + number;
+    writeMessage: function (elSelector, msg, number) {
+        document.querySelector(elSelector).innerText = msg + number;
     }
 };
 
 //create cells
 view.generateCells(field.sizeArea);
-view.addStat();
 
 //styles
 var styles = {
@@ -259,10 +253,13 @@ var styles = {
     cursor: 'pointer',
     transition: 'all 0.2s'
 };
-HTMLElement.prototype.css = function (obj) {
-    for (var prop in obj) {
-        if (obj.hasOwnProperty(prop)) {
-            this.style.setProperty(prop, obj[prop], null);
+HTMLElement.prototype.css = function (cssProp) {
+    if (typeof cssProp === 'string') {
+        return getComputedStyle(this)[cssProp];
+    }
+    for (var prop in cssProp) {
+        if (cssProp.hasOwnProperty(prop)) {
+            this.style.setProperty(prop, cssProp[prop], null);
         }
     }
     return this;
@@ -273,7 +270,6 @@ for (var i = 0; i < cell.length; i++) {
     cell[i].css(styles);
     //add click listener
     cell[i].addEventListener('click', shoot);
-    cell[i].addEventListener('contextmenu', makeTip);
 }
 body.css({
     width: maxCoord * parseInt(styles.width) + maxCoord * parseInt(getComputedStyle(cell[0]).marginRight) + 'px'
@@ -287,7 +283,7 @@ function createShips(shipsConfig) {
             field.shipObjects.push(newShip);
 
             // view all ships
-            // view.viewShips(newShip, cell);
+            // view.viewShips(newShip).viewShipsGap(newShip);
             // newShip.print();
             shipNumber--;
         }
@@ -327,7 +323,9 @@ function getShipByOrderNumber(shipCoord) {
 }
 function checkIsWinner() {
     if (field.shipObjects.length === 0) {
-        view.writeMessage("Winner!!!", "");
+        var champDiv = 'winner';
+        view.makeDiv(champDiv);
+        view.writeMessage('.' + champDiv, "Winner!!!", "");
     }
 }
 
@@ -339,10 +337,13 @@ function updateShipList(ship) {
 }
 
 function updateShotStat(coord) {
+    if (field.numberOfShots < 1) {
+        view.makeDiv('stat');
+    }
     if (isNewShot(coord)) {
         field.shots.push(coord);
         field.numberOfShots += 1;
-        view.writeMessage("Number of shots: ", field.numberOfShots);
+        view.writeMessage(".stat", "Number of shots: ", field.numberOfShots);
     }
 }
 
@@ -350,6 +351,12 @@ function updateShootedShipStat(ship) {
     if (ship.size > 0) ship.size -= 1;
     ship.status = ship.size === 0 ? "killed" : "injured";
     return ship;
+}
+
+function paintKilledShipGap(ship) {
+    if (isKilled(ship)) {
+        view.viewShipsGap(ship, cell);
+    }
 }
 
 function shoot() {
@@ -364,15 +371,12 @@ function shoot() {
         updateShootedShipStat(shootedShip);
         updateShipList(shootedShip);
 
-        view.writeMessage("Shooted ship status: ", shootedShip.status);
+        //write message about shooted ship status
+        // view.writeMessage("Shooted ship status: ", shootedShip.status);
         view.paintChosenCoord(shootCoord, green);
+        paintKilledShipGap(shootedShip);
         checkIsWinner();
     } else if (isAnotherShot) {
         view.paintChosenCoord(shootCoord, red);
     }
-}
-
-function makeTip() {
-    var shootCoord = getShipNumber(this);
-    view.paintChosenCoord(shootCoord, 'yellow');
 }
